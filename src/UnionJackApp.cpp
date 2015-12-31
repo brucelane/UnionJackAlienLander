@@ -197,8 +197,10 @@ void UnionJackApp::update()
 		float fps = getAverageFps();
 		boost::format zeroToOne("%+07.5f");
 		boost::format shortForm("%+08.4f");
-
-		mDisplays[0].display(" -=VITAS=-");
+		str = "-=VITAS=-    -=VITAS=-    -=VITAS=-";// loops on 12
+		int sz = int(getElapsedFrames() / 20.0) % 13;
+		shift_left( 0, sz);
+		mDisplays[0].display(str);
 		mDisplays[1].display(
 			" X " + (shortForm % vel.x).str() + " " +
 			" Y " + (shortForm % vel.y).str() + " " +
@@ -210,11 +212,17 @@ void UnionJackApp::update()
 			"dR " + (shortForm % acc.w).str()
 			);
 		mDisplays[3]
-			.display("FPS " + (shortForm % fps).str())
+			.display("FPS " + (shortForm % fps).str() )//+ toString(sz)
 			.colors(ColorA(fps < 50 ? mRed : mBlue, 0.8), ColorA(mDarkBlue, 0.8));
 	}
 }
-
+void UnionJackApp::shift_left(std::size_t offset, std::size_t X)
+{
+	std::rotate(std::next(str.begin(), offset),
+		std::next(str.begin(), offset + X),
+		str.end());
+	str = str.substr(0, str.size() - X);
+}
 void UnionJackApp::cleanup()
 {
     

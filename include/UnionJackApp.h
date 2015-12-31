@@ -75,5 +75,6 @@ public:
 
 	bool						showConsole;
 	void						ShowAppConsole(bool* opened);
-
+	void						shift_left( std::size_t offset, std::size_t X);
+	std::string					str;
 };
