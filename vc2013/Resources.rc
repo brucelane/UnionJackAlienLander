@@ -1,0 +1,14 @@
+#include "../include/Resources.h"
+
+1	ICON	"..\\resources\\cinder_app_icon.ico"
+RES_HAP_VERT
+RES_HAP_FRAG
+RES_US
+RES_US_BIG    
+RES_MOON 
+RES_MOON_BIG
+RES_US_SQUARE
+RES_VERT
+RES_FRAG
+RES_SEGMENT_VERT
+RES_SEGMENT_FRAG
