@@ -11,6 +11,16 @@ void prepareSettings(App::Settings *settings)
 // -------- SPOUT -------------
 void UnionJackApp::setup()
 {
+	int wr;
+	// parameters
+	mParameterBag = ParameterBag::create();
+	// utils
+	mBatchass = Batchass::create(mParameterBag);
+	wr = mBatchass->getWindowsResolution();
+	setWindowSize(mParameterBag->mMainWindowWidth, mParameterBag->mMainWindowHeight);
+	// setup shaders and textures
+	mBatchass->setup();
+
 	try {
 		mTexture = gl::Texture::create(loadImage(loadResource(RES_US_SQUARE)));
 		mTexture->bind(0);
@@ -39,10 +49,12 @@ void UnionJackApp::setup()
 
 	mShip.setup();
 
-	mDisplays.push_back(SegmentDisplay(10).position(vec2(5)).scale(2));
-	mDisplays.push_back(SegmentDisplay(10).rightOf(mDisplays.back()));
-	mDisplays.push_back(SegmentDisplay(35).below(mDisplays.front()));
+	mDisplays.push_back(SegmentDisplay(12).position(vec2(5)).scale(3));
+	//mDisplays.push_back(SegmentDisplay(10).rightOf(mDisplays.back()));
+	//mDisplays.push_back(SegmentDisplay(35).below(mDisplays.front()));
 	mDisplays.push_back(SegmentDisplay(35).below(mDisplays.back()));
+	mDisplays.push_back(SegmentDisplay(35).below(mDisplays.back()));
+	mDisplays.push_back(SegmentDisplay(10).below(mDisplays.back()));
 
 	for (auto display = mDisplays.begin(); display != mDisplays.end(); ++display) {
 		display->colors(ColorA(mBlue, 0.8), ColorA(mDarkBlue, 0.4));
@@ -52,6 +64,22 @@ void UnionJackApp::setup()
 	//    setFullScreen( true );
 	setFrameRate(60);
 	gl::enableVerticalSync(true);
+
+	setWindowPos(ivec2(0, 0));
+	mParameterBag->iResolution.x = mParameterBag->mRenderWidth;
+	mParameterBag->iResolution.y = mParameterBag->mRenderHeight;
+	mParameterBag->mRenderResolution = ivec2(mParameterBag->mRenderWidth, mParameterBag->mRenderHeight);
+	mParameterBag->mRenderResoXY = vec2(mParameterBag->mRenderWidth, mParameterBag->mRenderHeight);
+	mParameterBag->mRenderPosXY = ivec2(mParameterBag->mRenderX, mParameterBag->mRenderY);
+
+	setWindowSize(mParameterBag->mRenderWidth, mParameterBag->mRenderHeight);
+	setWindowPos(ivec2(mParameterBag->mRenderX, mParameterBag->mRenderY));
+	// instanciate the console class
+	mConsole = AppConsole::create(mParameterBag, mBatchass);
+	showConsole = false;
+	// set ui window and io events callbacks
+	ui::initialize();
+    
 }
 void UnionJackApp::buildMeshes()
 {
@@ -170,20 +198,20 @@ void UnionJackApp::update()
 		boost::format zeroToOne("%+07.5f");
 		boost::format shortForm("%+08.4f");
 
-		mDisplays[0].display("ALT " + (zeroToOne % mShip.mPos.z).str());
-		mDisplays[1]
-			.display("FPS " + (shortForm % fps).str())
-			.colors(ColorA(fps < 50 ? mRed : mBlue, 0.8), ColorA(mDarkBlue, 0.8));
-		mDisplays[2].display(
+		mDisplays[0].display(" -=VITAS=-");
+		mDisplays[1].display(
 			" X " + (shortForm % vel.x).str() + " " +
 			" Y " + (shortForm % vel.y).str() + " " +
 			" R " + (shortForm % vel.w).str()
 			);
-		mDisplays[3].display(
+		mDisplays[2].display(
 			"dX " + (shortForm % acc.x).str() + " " +
 			"dY " + (shortForm % acc.y).str() + " " +
 			"dR " + (shortForm % acc.w).str()
 			);
+		mDisplays[3]
+			.display("FPS " + (shortForm % fps).str())
+			.colors(ColorA(fps < 50 ? mRed : mBlue, 0.8), ColorA(mDarkBlue, 0.8));
 	}
 }
 
@@ -241,7 +269,22 @@ void UnionJackApp::draw()
 			display->draw();
 		}
 	}
+	if (showConsole)
+	{
+		ui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+		ui::SetNextWindowPos(ImVec2(1024, 50), ImGuiSetCond_Once);
+		ShowAppConsole(&showConsole);
+		if (mParameterBag->newMsg)
+		{
+			mParameterBag->newMsg = false;
+			mConsole->AddLog(mParameterBag->mMsg.c_str());
+		}
+	}
 }
-
+// From imgui by Omar Cornut
+void UnionJackApp::ShowAppConsole(bool* opened)
+{
+	mConsole->Run("Console", opened);
+}
 
 CINDER_APP(UnionJackApp, RendererGl(RendererGl::Options().msaa(16)), prepareSettings)

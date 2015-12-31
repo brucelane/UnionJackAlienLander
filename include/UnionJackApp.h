@@ -72,4 +72,8 @@ public:
 	BatchassRef					mBatchass;
 	// console
 	AppConsoleRef				mConsole;
+
+	bool						showConsole;
+	void						ShowAppConsole(bool* opened);
+
 };
